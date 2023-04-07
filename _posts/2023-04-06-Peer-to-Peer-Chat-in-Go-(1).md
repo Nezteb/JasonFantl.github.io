@@ -2,11 +2,11 @@
 title: Peer to Peer Chat Network in Go (1)
 img_path: /assets/img/posts/PeerToPeer1/
 math: true
+image: export.gif
+
 ---
 
 ## Concept
-
-![Flood Fill Network](export.gif){: .center w="400" h="400" }
 
 ### Overview
 We want a network that doesn't have a single point of failure, that can grow and shrink, a network where the users are themselves the architecture, where we depend on nothing but our own machines, and we have complete control over its rules. Introducing Peer To Peer networks!
@@ -91,7 +91,7 @@ func handleConnection(connection net.Conn) {
 	connection.Close()
 }
 ```
-{: file='server.go' style="max-height: 500px; overflow-y: scroll;"}
+{: file='server.go'"}
 
 Now we need a client to connect from and send messages.
 
@@ -143,7 +143,7 @@ func makeConnection(address string) {
 	connection.Close()
 }
 ```
-{: file='client.go' style="max-height: 500px; overflow-y: scroll;"}
+{: file='client.go'"}
 
 Run the server in one terminal with `go run server.go`, and then run the client in another with `go run client.go`. You should see the server receive a connection. You can then send a message from the client by typing a message in the terminal and pressing enter. Try connecting multiple clients to the server at once.
 
@@ -299,7 +299,7 @@ func isErrorAddressAlreadyInUse(err error) bool {
 	return false
 }
 ```
-{: file='node.go' style="max-height: 500px; overflow-y: scroll;" }
+{: file='node.go'" }
 
 In two or more terminals run the above code with `go run node.go`. Now connect one node to another by typing `connect [::]:55555` and pressing enter. Make sure you replace 55555 with whatever node your trying to connect to. Your terminal should look similar to the below
 ```bash
@@ -309,6 +309,7 @@ connect [::]:55555
 Requesting connection: [::]:55555
 Handling connection: [::1]:55555
 ```
+{: .nolineno }
 
 And now if you send a message on either of the two connected nodes, the message will be printed on the other. 
 
