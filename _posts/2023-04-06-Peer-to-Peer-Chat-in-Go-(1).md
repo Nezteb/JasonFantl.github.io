@@ -1,5 +1,5 @@
 ---
-title: Peer to Peer Chat Network in Go
+title: Peer to Peer Chat Network in Go (1)
 img_path: /assets/img/posts/PeerToPeer1/
 math: true
 ---
