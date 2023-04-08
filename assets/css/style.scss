@@ -15,11 +15,6 @@ $tab-count: {{ site.tabs | size | plus: 1 }}; // plus 1 for home tab
     max-height: 500px;
 }
 
-.highlighter-rouge {
-    margin-left: 1em;
-    margin-right: 1em;
-}
-
 .card.post-preview .col-md-4 {
   position: relative;
   overflow: hidden;
@@ -44,4 +39,17 @@ padding: 0;
 
 #post-list .post-preview {
   padding-right: 0;
+}
+
+details {
+  padding: 10px;
+}
+
+details summary {
+  cursor: pointer;
+  transition: margin 550ms ease-out;
+}
+
+details[open] summary {
+  margin-bottom: 10px;
 }

@@ -84,7 +84,7 @@ layout: page
             {% if post.image %}
           </div>
           <div class="col-md-4">
-            {% capture src %}{{ post.img_path }}{{ post.image.path | default: post.image }}{% endcapture %}
+            {% capture src %}{{ post.img_path }}/{{ post.image.path | default: post.image }}{% endcapture %}
             <img src="{{ src }}" alt="Card image cap">
           </div>
         </div>

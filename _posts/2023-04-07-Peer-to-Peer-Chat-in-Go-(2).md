@@ -1,6 +1,7 @@
 ---
 title: Peer to Peer Chat Network in Go (2)
-img_path: /assets/img/posts/PeerToPeer2/
+categories: [Peer To Peer Chat Application]
+img_path: /assets/img/posts/PeerToPeer/2
 math: true
 ---
 
@@ -196,7 +197,7 @@ func isErrorAddressAlreadyInUse(err error) bool {
 	return false
 }
 ```
-{: file='node.go' "}
+{: file='node.go'}
 
 Now open up three terminals and run node.go with `go run node.go`. Then connect the first to the second, and second to the third. Send a message on the first, it should appear on the second and third as well. That means the message was passed on to fill the network.
 
@@ -254,7 +255,7 @@ func main() {
 	}
 }
 ```
-{: file='main.go'"}
+{: file='main.go'}
 
 ```go
 package main
@@ -373,7 +374,7 @@ func isErrorAddressAlreadyInUse(err error) bool {
 	return false
 }
 ```
-{: file='connections.go'"}
+{: file='connections.go'}
 
 ```go
 package main
@@ -407,7 +408,7 @@ func announce(message Message) {
 	}
 }
 ```
-{: file='messages.go'"}
+{: file='messages.go'}
 
 
 Now when we want to run the code we need to tell Go which files to use, so we run it with
