@@ -94,7 +94,7 @@ func handleConnection(connection net.Conn) {
 	connection.Close()
 }
 ```
-{: file='server.go'"}
+{: file='server.go'}
 
 Now we need a client to connect from and send messages.
 
@@ -146,7 +146,7 @@ func makeConnection(address string) {
 	connection.Close()
 }
 ```
-{: file='client.go'"}
+{: file='client.go'}
 
 Run the server in one terminal with `go run server.go`, and then run the client in another with `go run client.go`. You should see the server receive a connection. You can then send a message from the client by typing a message in the terminal and pressing enter. Try connecting multiple clients to the server at once.
 
@@ -302,7 +302,7 @@ func isErrorAddressAlreadyInUse(err error) bool {
 	return false
 }
 ```
-{: file='node.go'" }
+{: file='node.go' }
 
 In two or more terminals run the above code with `go run node.go`. Now connect one node to another by typing `connect [::]:55555` and pressing enter. Make sure you replace 55555 with whatever node your trying to connect to. Your terminal should look similar to the below
 ```bash
