@@ -3,6 +3,7 @@ title: AI Organized Bookshop
 # categories: [Simulated Economy]
 img_path: /assets/img/posts/BookEmbedding
 math: true
+image: cover.jpeg
 ---
 
 ## Morivation
