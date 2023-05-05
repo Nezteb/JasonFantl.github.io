@@ -361,3 +361,82 @@ Here we see four economies (and again, only the green one can manufacture beds w
 Notice that halfway through almost all the merchants are with the left-side economies, all selling beds, so the price of beds is slowly dropping to match the price of the green economy.
 
 The full repository can be found [here](https://github.com/JasonFantl/Simulated-Economy-Tutorial/tree/master/7). To run the binary, you need to provide the cities you want to run, like `/SimulatedEconomy7 Riverwood Seaside`, and run another application with `/SimulatedEconomy7 Portsville Winterhold`. On the second application hit the `Alt` key, it will attempt to connect to `localhost:55555`, which is what one of the cities from your first application should be listening on.
+
+Here is a functioning example of another application that can interface with a cities server. We have a "Merchant School" that sends 10 new merchants into a city.
+
+```python
+import socket
+import json
+import time
+
+# Replace with your server address and port
+server_address = "localhost"
+server_port = 55555
+
+def send_message(sock, message):
+    sock.sendall(message.encode())
+
+def receive_message(sock, buffer_size=1024):
+    data = sock.recv(buffer_size)
+    return data.decode()
+
+def main():
+    # Create a TCP/IP socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        # Connect to the Go server
+        sock.connect((server_address, server_port))
+
+        # Send a message to the server
+        message = "unidirectional PythonCity"
+
+        send_message(sock, message)
+
+        # Receive and process the response
+        response = receive_message(sock)
+        remote_city_name = response.strip()
+        print(f"Connected to city {remote_city_name}")
+
+        for i in range(10):
+            print("Sending merchant...")
+
+            merchant_data = {
+                "Money": 1211.4803370633176,
+                "BuysSells": "chair",
+                "CarryingCapacity": 20,
+                "Owned": 3,
+                "ExpectedPrices": {
+                    "bed": {
+                            "PORTSVILLE": 31.896729121741835,
+                            "RIVERWOOD": 16.95381916897244,
+                            "SEASIDE": 30.22688570620929,
+                            "WINTERHOLD": 32.65932633911733
+                    },
+                    "chair": {
+                            "PORTSVILLE": 11.045778022141988,
+                            "RIVERWOOD": 20.342182353944178,
+                            "SEASIDE": 10.709200882363625,
+                            "WINTERHOLD": 11.756341277296725
+                    },
+                    "thread": {
+                            "PORTSVILLE": 2.421718986326459,
+                            "RIVERWOOD": 4.585140611165299,
+                            "SEASIDE": 2.301383393344175,
+                            "WINTERHOLD": 2.4909610238149353
+                    },
+                    "wood": {
+                            "PORTSVILLE": 2.371161055748651,
+                            "RIVERWOOD": 4.541456107859949,
+                            "SEASIDE": 2.288907176392255,
+                            "WINTERHOLD": 2.4714546798485775
+                    }
+                }
+            }
+            send_message(sock, json.dumps(merchant_data) + "\n")
+
+        time.sleep(1)
+        # Close the connection
+        sock.close()
+
+if __name__ == "__main__":
+    main()
+```
