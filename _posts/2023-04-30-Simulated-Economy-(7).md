@@ -317,7 +317,7 @@ func (merchant *Merchant) bestDeal(good Good, city *City) (cityName, float64) {
 }
 ```
 
-And thats everything, now merchants can travel between cities located on different computers. As long as the sender and receiver follow our basic protocol, we can move merchants anywhere. The JSON looks like
+And thats everything, now merchants can travel between cities located on different computers. As long as the sender and receiver follow our basic protocol, we can move merchants anywhere. The JSON looks like (but ignore the newlines, you can see that we use new lines to indicate the end of the message, so the JSON being sent doesn't contain newlines except at the end)
 
 ```json
 {
