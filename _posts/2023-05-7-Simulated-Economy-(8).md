@@ -73,15 +73,19 @@ And in fact, even if we change the initial conditions, both populations will alw
 
 But how about a third population? If we have grass $G$ which grows into its carrying capacity, rabbits $R$ that eat grass, and foxes $F$ that eat rabbits. All that together we get a 3D system. We will represent the third dimension in the phase space by the size of the point.
 
-
 <p class="text-center">$\frac{dF}{dt} = -aFR-bF$</p>
 <p class="text-center">$\frac{dR}{dt} = -cRG-dRF$</p>
 <p class="text-center">$\frac{dG}{dt} = -eG(1-\frac{G}{K})-fGR$</p>
 
 ![3 populations](nonchaotic_population.gif){: .center h="400" }
 
+We see another limit point here, so the populations will always converge to these values. We have seen limit points and cycles, but we can also find aperiodic behavior in phase space.
 
-But if we try a new set of equations for each population, we can find more interesting behavior (ignore that parts are negative, we could shift the graph so that its positive if we wanted, but this is more representative of the equations I picked). 
+Although I provide no justification, what if the relationship between foxes, rabbits, and grass followed the equations below? We allow values to be negative and simply imagine the graph is shifted, or imagine the numbers represent something other then population size.
+
+<p class="text-center">$\frac{dF}{dt} = a+F(G-b)$</p>
+<p class="text-center">$\frac{dR}{dt} = G + cR$</p>
+<p class="text-center">$\frac{dG}{dt} = -R - F$</p>
 
 ![3 populations in chaos](chaotic_population.gif){: .center h="400" }
 
@@ -120,15 +124,19 @@ Our fox-rabbit-grass simulation is discrete since it's simulated on a computer r
 </div>
 </div>
 
-We see immense complexity with just three variables, imagine the beauty to be seen in higher dimensions (ah, but we are confined to view only shadows of shadows of those greater shapes).
+We see immense complexity with just three variables, imagine the beauty to be seen in higher dimensions (ah, but we are confined to only shadows of shadows of those possible shapes). But as this relates back to our populations, higher dimensions are trivial to add and view. We would add more populations and watch the population counts change overtime. If we see aperiodic behavior, theres a good chance our populations are a point traveling in phase space along a strange attractor.
 
 [Here](http://paulbourke.net/fractals/) [are](https://www.williamrchase.com/writing/2019-02-28-strange-attractors-12-months-of-art-february) [some](https://www.cedrick.ai/posts/attractors.html) [beautiful](https://chaoticatmospheres.com/mathrules-strange-attractors) visualizations of attractors. We can also [create](https://www.youtube.com/playlist?list=PLBLV84VG7Md8RMWQEzDOFSyrv14-9lMxn) attractors that have never been seen before. For a proper introduction to dynamical systems and chaos, check out [this free lecture series](https://www.youtube.com/playlist?list=PLbN57C5Zdl6j_qJA-pARJnKsmROzPnO9V) by Steven Strogatz.
 
 ## Economy
-But we've strayed, how does this have anything to do with our simulated economy? Well, in order to assure no one will ever understand what's going on in our simulated economy, we can sprinkle in some chaos.
+But we've strayed, how does this have anything to do with our simulated economy? Well, in order to assure no one will ever understand what's going on in our economy, we add chaos.
 
-Starting with our population simulation, we will add one more variable, hunters. Now humans hunt foxes, foxes hunt rabbits, and rabbits eat grass. This we know this is primed to be a chaotic system, and it's fairly easy to find an exotic [four dimensional chaotic attractor](https://www.sciencedirect.com/science/article/pii/S209044791730014X). Now that we have a sufficiently complex system, let's connect it to our economy.
+Starting with our population simulation, we will add one more variable, hunters. Now we have four variables that are all interconnected, humans, foxes, rabbits, and grass. We will use the Rössler attractor to relate the foxes, rabbits, and grass, and humans can kill foxes. Now that we have a sufficiently complex system, let's connect it to our economy.
 
-We will have the population simulation sit on its own machine that can only be connected to via travleways, which means only merchants can access it (we haven't added traveling citizens yet). When merchants travel to this "city", the expected price of foxes will be set inversely proportional to the fox population. This will have the effect of bringing more merchants to the "city" when the fox population is high, and cause them to leave when it is low. While in the city, if the fox prices are lowest there, they will hunt the foxes until they cannot carry any more. When the demand for foxes is high, more foxes will be hunted, and when the population of foxes is low, the supply of foxes will drop. Both these effects ripple through the ecosystem and economy, linking the two systems into a single system that can never be analyzed again.
+We will have the population simulation sit on its own machine that can only be connected to via travleways, which means only merchants can access it (we haven't added traveling citizens yet). Instead of thread, we have furs, which can only be produced at this hunting grounds. When merchants travel to the hunting grounds, they will randomly kill foxes until they reach their carrying capacity. Their success is in proportion to the number of foxes. When the fox population is high, merchants will quickly reach their carrying capacity and leave, bringing prices down. When the population is low, the merchants will leave slowly, and prices will rise.
 
-If we cut the price of beds, it will certainly impact the rabbit population, but how? Well, it depends. What was the population of foxes and grass at the time, the prices of every other good, which type of goods were the merchants focused on at that moment? We essentially connected to chaotic systems. And we could keep going. There could be chaotic weather systems which effect populations and travel conditions (chaos theory was born out of weather models as it happens), or the orbits of many planets which effects the day-night cycle and weather conditions, or even the flow of molten iron in the outer core that determine the planets magnetic poles.
+![Connected attractor and economy](connected.gif){: .center h="400" }
+
+We see when the fox population explodes, the price of furs drops, and indirectly the price of beds as well. Every time a fox is killed, it nudges the point in phase space just a bit, completely redirecting the future of the ecosystem (thats what it means to be a chaotic attractor).
+
+We could keep going. There could be chaotic weather systems which effect populations and travel conditions (as it happens, chaos theory was born out of weather models), or the orbits of many planets which effects the day-night cycle and weather conditions, or even the flow of molten iron in the outer core that determine the planets magnetic poles.
