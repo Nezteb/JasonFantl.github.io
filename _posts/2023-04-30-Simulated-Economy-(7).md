@@ -79,7 +79,7 @@ The merchants handle leaving a city on their own.
 
 ```go
 func (merchant *Merchant) leaveCity(city *City, toCity cityName) {
-	// remove self from city
+	// remove self from city is being placed onto a new path every time a hunter kills a fox, redirecting the future of the populations
 	delete(city.merchants, merchant)
 	// enter travelWay
 	merchant.city = "traveling..." // not necessary, gets ignored by JSON serializer
@@ -159,7 +159,7 @@ func setupNetworkedTravelWay(portNumber int, city *City) *networkedTravelWays {
 			}
 
 			// each connection is handled by its own process
-			go travelWays.handleIncomingConnection(connection)
+			go travelWays.handleConnection(connection)
 		}
 	}()
 
@@ -167,61 +167,62 @@ func setupNetworkedTravelWay(portNumber int, city *City) *networkedTravelWays {
 }
 ```
 
-A `networkedTravelWays` can handle both incoming and outgoing connection requests. We allow for either a `Unidirectional` connection, or can request a `Bidirectioanl` connection. For `Bidirectional` we need to provide the remote server address to create the other connection. Our very basic protocol for establishing a travelWay between cities is 
+A `networkedTravelWays` connection handles both incoming and outgoing connection requests. Our very basic protocol for establishing a travelWay between cities is 
 
-<div class="row">
-<div class="col-md-6">
-  * Outbound connection
-  1. Make connection request.
-  2. Send the request type (including the server IP if `Bidirectional`) and cities name.
-  3. Receive the other cities name.
-  4. Send merchants over connection.
-</div>
-<div class="col-md-6">
- * Inbound connection
- 1. Receive connection request.
- 2. Receive the request type and other cities name. If `Bidirectional`, spawn off a `Unidirectional` request to the provided IP address.
- 3. Send our cities name.
- 4. Receive merchants over connection.
-</div>
-</div>
+ 1. Send or receive connection request.
+ 2. Send and receive our cities name.
+ 3. Send and receive merchants.
 
 I'll cut out some of the code here since a lot of it is boilerplate, even then it's pretty long. Essentially this code moves merchants from a channel onto a TCP connection encoded as JSON. It does the reverse too, receiving JSON objects over a TCP connection that get turned into merchants and placed onto the channel.
 
 ```go
-func (travelWays *networkedTravelWays) handleIncomingConnection(connection net.Conn) {
-	defer connection.Close()
+func (travelWays *networkedTravelWays) requestConnection(address string) {
+	fmt.Printf("Requesting connection: %s...\n", address)
+	connection, err := net.Dial("tcp", address)
 
-	// check if this is unidirectional or bidirectional and get the city's name
+	go travelWays.handleConnection(connection)
+}
+
+// blocking, must be handled as a new routine
+func (travelWays *networkedTravelWays) handleConnection(connection net.Conn) {
+	done := make(chan bool)
+	outboundChannel := make(chan *Merchant, 100)
+	inboundChannel := make(chan *Merchant, 100)
+
+	// send our city's name. Blocking, so run in separate routine
+	go func() {
+		_, err := connection.Write([]byte(travelWays.city.name))
+		if err != nil {
+			fmt.Println(err)
+			done <- true
+		}
+	}()
+
+	// get the city name
 	initializationPacketBytes := make([]byte, 1024)
 	n, err := connection.Read(initializationPacketBytes)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	initializationPacket := string(initializationPacketBytes[:n])
-	packetValues := strings.Split(initializationPacket, " ")
-	var remoteCityName cityName
-	if packetValues[0] == string(BIDIRECTIONAL) {
-		remoteListenerIP := packetValues[1]
-		travelWays.requestConnection(remoteListenerIP, UNIDIRECTIONAL)
-		remoteCityName = cityName(packetValues[2])
-	} else if packetValues[0] == string(UNIDIRECTIONAL) {
-		remoteCityName = cityName(packetValues[1])
-	}
-
-	// send our city's name
-	connection.Write([]byte(travelWays.city.name))
-
-	// make sure we aren't already connected to the city
-	if _, alreadyExist := travelWays.city.inboundTravelWays[remoteCityName]; alreadyExist {
-		fmt.Printf("error: travelWay from %s to %s already exists\n", remoteCityName, travelWays.city.name)
-		return
-	}
+	remoteCityName := cityName(initializationPacketBytes[:n])
 
 	// add travelWay to city
-	channel := make(chan *Merchant, 100)
-	travelWays.city.inboundTravelWays[remoteCityName] = channel
+	travelWays.city.inboundTravelWays.Store(remoteCityName, inboundChannel)
+	travelWays.city.outboundTravelWays.Store(remoteCityName, outboundChannel)
+
+	fmt.Printf("Successfully added city %s as a network connection, sending and receiving merchants...\n", remoteCityName)
+
+	go travelWays.handleIncomingMessages(connection, inboundChannel, done)
+	go travelWays.handleOutgoingMessages(connection, outboundChannel, done)
+
+	// wait for connection to close
+	<-done
+	travelWays.city.outboundTravelWays.Delete(remoteCityName)
+	travelWays.city.inboundTravelWays.Delete(remoteCityName)
+
+	fmt.Printf("Connection to %s closed\n", remoteCityName)
+	connection.Close()
+}
+
+// blocking, must be handled as a new routine
+func (travelWays *networkedTravelWays) handleIncomingMessages(connection net.Conn, channel chan *Merchant, done chan bool) {
 
 	// pass merchants from connection to channel
 	reader := bufio.NewReader(connection)
@@ -230,57 +231,25 @@ func (travelWays *networkedTravelWays) handleIncomingConnection(connection net.C
 
 		// Deserialize the merchant object
 		merchant := &Merchant{}
-		json.Unmarshal([]byte(line), merchant)
+		err = json.Unmarshal([]byte(line), merchant)
 
 		channel <- merchant
 	}
-
-	fmt.Printf("Connection with %s broken, removing travelWay\n", remoteCityName)
-	delete(travelWays.city.inboundTravelWays, remoteCityName)
 }
 
-func (travelWays *networkedTravelWays) handleOutgoingConnection(connection net.Conn, connectionType TravelWayProtocolType) {
-	defer connection.Close()
-
-	// send connection type
-	initializationPacket := ""
-	if connectionType == BIDIRECTIONAL {
-		initializationPacket = string(BIDIRECTIONAL) + " " + travelWays.server.Addr().String()
-	} else if connectionType == UNIDIRECTIONAL {
-		initializationPacket = string(UNIDIRECTIONAL)
-	}
-	initializationPacket += " " + string(travelWays.city.name)
-
-	// send first packet
-	connection.Write([]byte(initializationPacket))
-
-	// receive the other city's name
-	remoteCityNameBytes := make([]byte, 1024)
-	n, err := connection.Read(remoteCityNameBytes)
-	remoteCityName := cityName(remoteCityNameBytes[:n])
-
-	// make sure we aren't already connected to the city
-	if _, alreadyExist := travelWays.city.outboundTravelWays[remoteCityName]; alreadyExist {
-		fmt.Printf("error: travelWay from %s to %s already exists\n", travelWays.city.name, remoteCityName)
-		return
-	}
-
-	// add travelWay to city
-	channel := make(chan *Merchant, 100)
-	travelWays.city.outboundTravelWays[remoteCityName] = channel
+// blocking, must be handled as a new routine
+func (travelWays *networkedTravelWays) handleOutgoingMessages(connection net.Conn, channel chan *Merchant, done chan bool) {
 
 	// pass merchants from channel into connection
 	writer := bufio.NewWriter(connection)
+
 	for {
 		merchant := <-channel
 
 		// Serialize the merchant object
 		merchantBytes, err := json.Marshal(merchant)
-		writeAndFlush(writer, merchantBytes)
+		err = writeAndFlush(writer, merchantBytes)
 	}
-
-	fmt.Printf("Connection with %s broken, removing travelWay\n", remoteCityName)
-	delete(travelWays.city.outboundTravelWays, remoteCityName)
 }
 ```
 
@@ -317,7 +286,7 @@ func (merchant *Merchant) bestDeal(good Good, city *City) (cityName, float64) {
 }
 ```
 
-And thats everything, now merchants can travel between cities located on different computers. As long as the sender and receiver follow our basic protocol, we can move merchants anywhere. The JSON looks like (but ignore the newlines, you can see that we use new lines to indicate the end of the message, so the JSON being sent doesn't contain newlines except at the end)
+And thats everything, now merchants can travel between cities located on different computers. As long as the sender and receiver follow our basic protocol, we can move merchants anywhere. The JSON looks like (but ignore the newlines. You can see that we use new lines to indicate end of message, so the JSON being sent can't contain newlines, except the one at the end of the string)
 
 ```json
 {
@@ -360,7 +329,7 @@ Here we see four economies (and again, only the green one can manufacture beds w
 
 Notice that halfway through almost all the merchants are with the left-side economies, all selling beds, so the price of beds is slowly dropping to match the price of the green economy.
 
-The full repository can be found [here](https://github.com/JasonFantl/Simulated-Economy-Tutorial/tree/master/7). To run the binary, you need to provide the cities you want to run, like `/SimulatedEconomy7 Riverwood Seaside`, and run another application with `/SimulatedEconomy7 Portsville Winterhold`. On the second application hit the `Alt` key, it will attempt to connect to `localhost:55555`, which is what one of the cities from your first application should be listening on.
+The full repository can be found [here](https://github.com/JasonFantl/Simulated-Economy-Tutorial/tree/master/7). A small change has been made from this tutorial to make the travelWays thread safe. To run the binary, you need to provide the cities you want to run, like `/SimulatedEconomy7 Riverwood Seaside`, and run another application with `/SimulatedEconomy7 Portsville Winterhold`. On the second application hit the `Alt` key, it will attempt to connect to `localhost:55555`, which is what one of the cities from your first application should be listening on.
 
 Here is a functioning example of another application that can interface with a cities server. We have a "Merchant School" that sends 10 new merchants into a city.
 
@@ -374,11 +343,16 @@ server_address = "localhost"
 server_port = 55555
 
 def send_message(sock, message):
-    sock.sendall(message.encode())
+    sock.sendall(message)
 
 def receive_message(sock, buffer_size=1024):
-    data = sock.recv(buffer_size)
-    return data.decode()
+    try:
+        data = sock.recv(buffer_size)
+    except BlockingIOError:
+        print("No data available to read.")
+        return None
+
+    return data
 
 def main():
     # Create a TCP/IP socket
@@ -386,17 +360,19 @@ def main():
         # Connect to the Go server
         sock.connect((server_address, server_port))
 
-        # Send a message to the server
-        message = "unidirectional PythonCity"
+        # Send our city name
+        send_message(sock, "PythonCity".encode())
 
-        send_message(sock, message)
-
-        # Receive and process the response
-        response = receive_message(sock)
+        # Receive the remote city name
+        response = receive_message(sock).decode()
         remote_city_name = response.strip()
         print(f"Connected to city {remote_city_name}")
+        
+        # make sure they add us to their city before sending any other messages
+        time.sleep(1.00)
 
         for i in range(10):
+            time.sleep(0.01)
             print("Sending merchant...")
 
             merchant_data = {
@@ -409,33 +385,46 @@ def main():
                             "PORTSVILLE": 31.896729121741835,
                             "RIVERWOOD": 16.95381916897244,
                             "SEASIDE": 30.22688570620929,
-                            "WINTERHOLD": 32.65932633911733
+                            "WINTERHOLD": 32.65932633911733,
                     },
                     "chair": {
                             "PORTSVILLE": 11.045778022141988,
                             "RIVERWOOD": 20.342182353944178,
                             "SEASIDE": 10.709200882363625,
-                            "WINTERHOLD": 11.756341277296725
+                            "WINTERHOLD": 11.756341277296725,
                     },
                     "thread": {
                             "PORTSVILLE": 2.421718986326459,
                             "RIVERWOOD": 4.585140611165299,
                             "SEASIDE": 2.301383393344175,
-                            "WINTERHOLD": 2.4909610238149353
+                            "WINTERHOLD": 2.4909610238149353,
                     },
                     "wood": {
                             "PORTSVILLE": 2.371161055748651,
                             "RIVERWOOD": 4.541456107859949,
                             "SEASIDE": 2.288907176392255,
-                            "WINTERHOLD": 2.4714546798485775
+                            "WINTERHOLD": 2.4714546798485775,
                     }
                 }
             }
-            send_message(sock, json.dumps(merchant_data) + "\n")
+            print(len(json.dumps(merchant_data).encode()))
+            message = json.dumps(merchant_data) + "\n"
+            send_message(sock, message.encode())
 
-        time.sleep(1)
+        # send back any received merchants
+        sock.setblocking(False)
+        received_count = 0
+        while True:
+            message = receive_message(sock)
+            if message:
+                received_count += 1
+            else:
+                break
+
         # Close the connection
         sock.close()
+
+        print("Sent 10 merchants and received", received_count)
 
 if __name__ == "__main__":
     main()
