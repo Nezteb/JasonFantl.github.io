@@ -3,7 +3,6 @@ title: Molecule Inspired Simulations
 categories: []
 img_path: /assets/img/posts/Molecules
 math: true
-image: cover.png
 ---
 
 ### Forces
