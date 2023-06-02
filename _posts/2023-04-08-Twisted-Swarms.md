@@ -42,12 +42,17 @@ But lets relate this back to the boids issue that started this all off. Rather t
 
 ## On a circle
 
-<div align="center">
-  <img src="c1.gif" width="200" height="200" />
-  <img src="c2.gif" width="200" height="200" />
-  <img src="c3.gif" width="200" height="200" />
+<div class="row align-items-center">
+<div class="col-md-4">
+![line integral](c1.gif){: .center w="200" }
 </div>
-
+<div class="col-md-4">
+![line integral](c2.gif){: .center w="200" }
+</div>
+<div class="col-md-4">
+![line integral](c3.gif){: .center w="200" }
+</div>
+</div>
 
 And we see the issue that began this investigation, the agents do not all converge to the same value. Given initially random values, they seem to settle on cycles of the value, the number of cycles different each time. Could we predict what the final result will look like given the initial configuration? Yes!
 
