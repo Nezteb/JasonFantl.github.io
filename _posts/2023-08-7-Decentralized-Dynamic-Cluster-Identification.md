@@ -102,6 +102,25 @@ If they specify a short threshold, then you may get unstable clusters due to the
 
 If they specify a long threshold, then a drone may actually leave the cluster for a time, miss some messages, and rejoin without realizing they were disconnected. One way to fix this is to have drones periodically check if their neighbor has the same recent history as themselves, looking back at least the amount of time a drone can leave the cluster unaware for.
 
+#### Unstable clusters
+
+At larger scales you may run into an issue with unstable clusters. Imagine over a million drones in a cluster, then some drones at the edge will be leaving and rejoining at various intervals, from one second to an hour, and everything in between. This means no matter the threshold for waiting on Keep-Alive messages, people will be consistently leaving and rejoining. If thousands of drones are doing this, then the chance that a few of them will generate a cluster ID larger then the million-drone cluster is high. This means the cluster ID will be constantly changing for a period of time. Eventually the ID of the cluster will be near its maximum since we took a lot of samples, so it becomes increasingly difficult to beat. But one way to avoid the instability, even at the beginning of a cluster formation, is to use cluster lifetime as the value to compare between groups, not the cluster ID. This comes with its own challenges, which I plan on exploring in the future.
+
 #### Collision avoidance
 
 When a drone is broadcasting, it is sending out radio signals at a specified frequency, which the other drones know to listen on. When two drones broadcast at the same time, their signals will collide with each other, causing the messages to get corrupted. Many wireless networks solve this by using [Carrier-sense Multiple Access with Collision Avoidance](https://en.wikipedia.org/wiki/Carrier-sense_multiple_access_with_collision_avoidance) (CSMA C/A). This is a nice solution to the collision issue, but only solves the problem for nodes within a short distance of each other. We still face the Hidden Node Problem, which is when two drones which are out of range with each other broadcast to a drone in the center of the two, causing the message to collide only at the central drone. In order to solve this, some wireless networks use [Request to Send/Clear to Send]() (RTS/CTS), but this is for sending a message to a central drone, not broadcasting. As of writing this, I have not found a solution, and so if you, the reader, know of any such protocols or have any ideas, please reach out. It would be great to have a protocol such that drones can coordinate broadcasting in a MANET over the same frequency without collisions and with a relatively low latency. A sort of decentralized space/time scheduler in a dynamic network.
+
+## Live Simulation
+
+And for your enjoyment, an everlasting simulation of the boids running this algorithm.
+
+<div id="p5-canvas-container" style="
+  display: flex;
+  justify-content: center; /* Horizontal centering */
+  align-items: center;     /* Vertical centering */
+"></div>
+
+<script src="/assets/js/p5.js"></script>
+<script src="/assets/js/posts/ClusterID/network.js"></script>
+<script src="/assets/js/posts/ClusterID/node.js"></script>
+<script src="/assets/js/posts/ClusterID/sketch.js"></script>
