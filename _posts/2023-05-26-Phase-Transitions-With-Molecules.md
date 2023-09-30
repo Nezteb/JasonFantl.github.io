@@ -5,53 +5,54 @@ img_path: /assets/img/posts/Molecules
 math: true
 ---
 
-### Forces
-This begins with the [Fyenman Lectures](https://www.feynmanlectures.caltech.edu/), which I _highly_ recommend. The very first lecture begins with atoms and how they interact with each other, showing us how water works at the molecular level.
 
-Let's create a simulation inspired by the water molecules. We will create grossly over-simplified "molecules", which will interact at the local level, anf hopefully produce large scale behavior.
+Water is wild, let's see if we can recreate any of its properties from simulations at the "molecular" level. But let's not get get ahead of ourselves, this isn't some complicated [fluid simulation](https://www.youtube.com/watch?v=MXs_vkc8hpY), nor are we developing anything as complex as [molecular dynamics](https://en.wikipedia.org/wiki/Molecular_dynamics). Instead, let's just take the most basic model we can think of and see how far that takes us (which is pretty far as it turns out).
 
-To begin, we need a force equation that models how one molecule interacts with another. It should produce properties such that when one molecule is too close to another molecule, it gets repelled, and when it's too far, it gets attracted. There are many equations that would do this, I think $\frac{1}{x^{2}}(1-\frac{1}{8x^{2}}))$ looks nice. 
+Remove from your mind this idea of a complex molecule with atoms made of electrons, protons, and neutrons, with chemical bonds to other atoms, breaking and forming in chemical reactions, each molecule emerging with its own unique properties, laying the foundation of chemistry itself. No, our molecules will be dots on a screen.
 
-![Force Graph](forceGraph.png){: .center w="400" }
+The equation for a molecule (a dot on the screen) interacting with another molecule will be $F=\frac{1}{x^{12}}-\frac{1}{x^{6}}$, where x is the distance from the other molecule, and F is the force. This means when the molecule is too close, it gets pushed away, and when it's far, it gets attracted (but too far and it feels almost nothing, so we only have to think about molecules that are close). This is called the [Lennard-Jones Potential](https://en.wikipedia.org/wiki/Lennard-Jones_potential).
 
-Now we take a "molecule", and update its velocity and position based on this force equation every frame. Below we see the result of the force equation (green for attracted, red for repelled) of a stuck molecule acting on a free-moving molecule. Then we simulate multiple molecules interacting with each other. And then we add walls and make it colorful.
+![Force Graph](forceGraph.png){: .center h="300" }
 
-<div class="row align-items-center">
-<div class="col-md-4">
+Now, every frame, each molecule will calculate its forces from every other molecule. With $F=MA$ we can update the velocity and position every frame. If we take a look at a single stuck molecule acting on a single free-moving molecule, this is what we get.
+
 ![Force Graph](forceGraph.gif){: .center w="200" h="200"}
-</div>
-<div class="col-md-4">
-![3 molecules](3molecules.gif){: .center w="400" h="400"}
-</div>
-<div class="col-md-4">
-![4 molecules](4molecules.gif){: .center h="400" w="400" .img-border}
-</div>
-</div>
 
-These "molecules" are dramatically simple, unable to capture much of the complexity seen in real molecules, but we will see macro behavior that almost looks to imitate the properties of water. 
+Place a number of free-moving molecules together and you get a wonderful dance.
 
-### Temperature and Cohesion
+![5 Molecules](5molecules.gif){: .center w="200" h="200"}
 
-Let's then try a hundred molecules together, and control their temperature. This means we increase or decrease each molecules velocity, which is the definition of temperature. When the screen flashes red, the temperature increases, and when it flashes blue, the temperature decreases. We also add gravity that can be turned on and off.
+### Phase transition
 
-<div class="row align-items-center">
-<div class="col-md-6">
-![temperature controlled molecules](temperatureMolecules.gif){: .center w="400" .img-border }
-</div>
-<div class="col-md-6">
-![gravity molecules](gravity.gif){: .center w="400" .img-border }
-</div>
-</div>
+Place a large number of molecules together and you get chaos. But slow down the molecules over time, then they become more organized. In fact, at a slow enough speed, all the molecules come together and form a single blob.
 
-In the first animation we see the temperature increase and decrease. When the temperature is high, we see the molecules bouncing around separately in the box, and when the temperature is low, they group together. This almost looks like gas and water. When we turn the temperature really low, we see a crystalline structure, which is what we would also see in frozen water. But our model is too simple, the molecules don't "lock" into place like true water molecules do. Our "molecules" can freely rotate around each other, meaning they maintain their fluid like properties.
+![liquid](liquid.gif){: .center w="300" h="300"}
 
-In the second animation, we slow the particles down, turn on gravity, turn it off, and finally on again when it gets close to the floor. With gravity, we see behavior similar to water cohesion. When the drop of "water" is sitting on the ground being being acted on by gravity, we see a bludge around the sides, but it doesn't spread out or break. And again, when gravity turns on as the drop hangs just above the floor, it falls and bulges out, then recovers.
+If you squint your eyes, it almost looks like a gas turning into a liquid. This is exactly what we would expect from water as the temperature drops. When the temperature gets very low, you'll notice the molecules start to form a crystalline shape, which is what we would expect from water if it got really cold. Unlike real water though, these molecules are still free to orbit around each other. They fail to "lock" into place, and so they maintain their liquid-like properties rather then turn to "ice". 
 
-### Buoyancy
+From the simple interaction of two individual molecules a hundred times over, we recreate something similar to the phase transition of water.
 
-Let's create large objects made out of molecules, we'll call them "cells". These cells will be rigid, using the forces acting on each of its individual molecules to calculate its linear force and rotational force. We can control the mass of the molecules that make up the cell, making it heavier or lighter. 
+### Cohesion
 
-By constructing hollow objects and varying their mass, we can see a buoyancy-like force appear.
+Run exactly the same simulation again, but with gravity.
+
+![cohesion](cohesion.gif){: .center w="300" h="300"}
+
+If you kept your eyes squinted, you may see a water droplet now. This is acting like water cohesion, keeping the water together rather then having it spread out across the floor. It even has the same distinct bulging shape that water droplets have.
+
+### Surface tension
+
+We now add rigid bodies made out of the same molecules. Every molecule is still exerting force on every other molecule, but the rigid body molecules are summing up their forces into a translational force and rotational force, which act on the body as a whole. 
+
+Gravity will be turned on, and the temperature will slowly be turned up.
+
+![surface tension](surfaceTension.gif){: .center w="200" h="200"}
+
+We see how temperature seems to effect surface tension, which makes sense since the water becomes less "solid" as the temperature increases. This is also [seen](https://en.wikipedia.org/wiki/Surface_tension#Influence_of_temperature) with real water.
+
+### Buoyancy Force
+
+By constructing hollow objects we can see a buoyancy-like force appear. We also vary the mass of the rigid body in order to probe how mass is related to the buoyancy force.
 
 <div class="row align-items-center">
 <div class="col-md-4">
@@ -67,7 +68,7 @@ By constructing hollow objects and varying their mass, we can see a buoyancy-lik
 
 ![floating box in water](floating.gif){: .right h="400" }
 
-We see when a cells molecules are lighter, or just a little heavier then other molecules, the cell floats. But when the mass becomes too large, it sinks. We verify with the floating box that even heavy molecules can create a floating cell. This tells us this behavior is in part from the hollow space, not just the weight of molecules (if it were just the weight, a cell made of heavier molecules would always sink). But there is a point where the weight overtakes the force created by the hollow space.
+The rigid body molecules are heavier then the "water" molecules at all times, and yet the object still floats, why? Because the rigid body is hollow (more generally, because it's less dense), the overall weight of the rigid body is less then the weight of the water, so the water will push under and up, creating our upward force. If the rigid body becomes too heavy, the weight will be greater then the weight of water, so the rigid body would be the one pushing water out of the way.
 
-We find an interesting behavior with the sunken box with its side is flat against the floor. Even when the sunken box is made lighter, it stays sunken and refuses to float up. You can actually find this behavior in your bathtub. Take a very flat/smooth object, and push it against the bottom of the tub. The object sits there, failing to float up for longer then you might expect. Although, eventually it does float back up. This is because buoyancy comes from water pushing at the bottom edges of the object (think through why, find the weight up to the surface on the left and right side of the edge). Without the water underneath, the water molecules at the edge can't translate their downward force into an upward force. The object in your tub isn't perfectly flat, so eventually enough water gets underneath to start pushing it up.
+There is an interesting behavior with the sunken box with its side is flat against the floor. Even when the sunken box is made lighter, it stays sunken and refuses to float up. You can actually find this behavior in your bathtub. Take a very flat/smooth object, and push it against the bottom of the tub. The object sits there, failing to float up for longer then you might expect. Although, eventually it does float back up. This is because buoyancy comes from water pushing at the bottom edges of the object (think through why, find the weight up to the surface on the left and right side of the edge). Without the water underneath, the water molecules at the edge can't translate their downward force into an upward force. The object in your tub isn't perfectly flat, so eventually enough water gets underneath to start pushing it up.
 

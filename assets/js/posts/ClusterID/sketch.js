@@ -38,7 +38,3 @@
     }
   }
   
-  function keyPressed() {
-        createLoop({duration:800.0/30.0, gif:true})
-  }
-  
