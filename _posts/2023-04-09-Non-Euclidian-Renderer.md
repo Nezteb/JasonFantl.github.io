@@ -20,9 +20,13 @@ Or if you look at Asteroids, where you can go off the top of the screen to appea
 
 But its not just games, our universe is non-Euclidean! It turns out that mass bends space and time itself (but lets just focus on the space bit), so that with large enough masses we can create [gravitational lenses](https://en.wikipedia.org/wiki/Gravitational_lens), or detect the collision of black holes by measuring the bending of space from the resulting [gravitational waves](https://en.wikipedia.org/wiki/Gravitational_wave). 
 
-<div align="center">
-  <img src="blackhole.gif" width="200" height="200" />
-  <img src="bent_space.gif" width="200" height="200" />
+<div class="row align-items-center">
+  <div class="col-md-4 mx-auto">
+![blackhole](blackhole.gif){: w="200" }
+</div>
+  <div class="col-md-4 mx-auto">
+![bent space](bent_space.gif){: w="200" }
+</div>
 </div>
 
 There are many ways of breaking Euclid's rules which describe our familiar geometry, and yet they still work. But perhaps we can bend the rules even further? We will develop a method for describing our own universes that can contain bent space, reconnecting bits, holes, and more.
@@ -73,10 +77,16 @@ We see a repeated universe in all directions, an infinite (single?) number of ou
 
 The following are the Mobius strip, the Klein Bottle, and the Sphere.
 
-<div align="center">
-  <img src="mobius_POV.gif" width="300" height="300" />
-  <img src="klein_POV.gif" width="300" height="300" />
-  <img src="sphere_POV.gif" width="300" height="300" />
+<div class="row align-items-center">
+  <div class="col-md-4 mx-auto">
+![mobius strip](mobius_POV.gif){: w="300" }
+</div>
+  <div class="col-md-4 mx-auto">
+![klein bottle](klein_POV.gif){: w="300" }
+</div>
+  <div class="col-md-4 mx-auto">
+![sphere](sphere_POV.gif){: w="300" }
+</div>
 </div>
 
 For the sphere you should actually see your face around the universe at a distance equal to the circumference of the universe. Because this is an approximation, some of the raycasting misses our body and travels around the sphere again. Try to image the 3D equivilent of a spherial universe. Looking up you would see the soles of your feet, to your left your right, to your front your back. With nothing else to block your view you would see an unbroken image of yourself wrapped around the universe.
