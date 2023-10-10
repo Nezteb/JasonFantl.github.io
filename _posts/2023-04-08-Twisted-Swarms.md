@@ -1,6 +1,6 @@
 ---
 title: Twisted Swarms
-categories: [Swarms]
+categories: [Swarm Intelligence]
 img_path: /assets/img/posts/TwistedSwarms
 math: true
 image: square_avg.gif

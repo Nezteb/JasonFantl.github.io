@@ -1,6 +1,6 @@
 ---
 title: Shaping Swarms in Simulation
-categories: [Swarms]
+categories: [Swarm Intelligence]
 img_path: /assets/img/posts/ShapingSwarms
 math: true
 image: murmuration.gif

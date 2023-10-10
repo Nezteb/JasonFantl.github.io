@@ -1,6 +1,6 @@
 ---
 title: A Control Principle Used by Ants and the Internet
-# categories: [Simulated Economy]
+categories: [Swarm Intelligence]
 img_path: /assets/img/posts/AntsInternet
 math: true
 image: cover.png
