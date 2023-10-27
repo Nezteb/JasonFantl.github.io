@@ -1,4 +1,4 @@
-const MAX_ID = 100;
+const MAX_ID = 1000;
 
 class Node {
   constructor(x, y, network, i) {
@@ -12,47 +12,81 @@ class Node {
     this.recentPayloads = [];
     this.maxPayloadMemory = 100; // max number of recent payloads to remember
 
-    this.leader = true;
-    this.groupID = i;
-    this.timeSinceLastPayload = random(30); // used as countdown for leader announcments and follower listening
+    this.isLeader = true;
+    this.currentClusterID = 10;
+    this.currentClusterLifetime = 0;
+    this.timeSinceLastPayload = random(2); // used as countdown for leader announcments and follower listening
     this.maxWaitSendTime = 10; // how often to send announcment as leader
     this.maxWaitRecieveTime = 40; // how long to wait for a leader message before becoming a leader
   }
 
-  // Send a message to the network
-  send(payload) {
-    // overwrtie payload
-    this.network.createBroadcast(this.position, this.range, payload);
+  timestep(nodes) {
+    this.move(nodes);
+    this.timeSinceLastPayload++;
 
-    // Add the sent payload to recentPayloads
-    this.addToRecentPayloads(payload);
+    if (this.isLeader) {
+      if (this.timeSinceLastPayload > this.maxWaitSendTime) {
+        this.currentClusterLifetime += 1;
+        this.send([this.currentClusterLifetime, this.currentClusterID, int(random(99999))]); // the random number acts as a nonce
+        this.timeSinceLastPayload = 0;
+      }
+    } else {
+      // follower
+      if (this.timeSinceLastPayload > this.maxWaitRecieveTime) {
+        this.isLeader = true;
+        this.currentClusterLifetime = 0;
+        this.currentClusterID = int(random(MAX_ID));
+
+        this.timeSinceLastPayload = 0;
+      }
+    }
   }
 
-  // Receive a message from a broadcast
-  receive(payload) {
+  // Send a message to the network
+  send(payload) {
+    // Add the sent payload to recentPayloads
+    this.addToRecentPayloads(payload);
+
+    // send
+    this.network.createBroadcast(this.position, this.range, payload);
+  }
+
+  onReceiveClusterPayload(payload) {
     // Check if the payload has been recently received or sent
     if (this.recentPayloads.includes(payload.toString())) {
       return; // Ignore the message
     }
-
-    let frame_sent = payload[0];
-    let new_groupID = payload[1];
-
-    // check if this is a leader announcment from a lesser leader
-    if (new_groupID < this.groupID) {
-      return; // Ignore the message
-    }
-
     this.addToRecentPayloads(payload);
 
-    // update new leader if this one os greator
-    if (new_groupID > this.groupID) {
-      this.groupID = new_groupID;
-      this.leader = false; // this will not do anything if already a follower
+    let incomingClusterLifetime = payload[0];
+    let incomingClusterID = payload[1];
+
+    if (
+      this.hasEnteredSuperiorCluster(incomingClusterLifetime, incomingClusterID)
+    ) {
+      this.currentClusterLifetime = incomingClusterLifetime;
+      this.currentClusterID = incomingClusterID;
+      if (this.isLeader) {
+        this.isLeader = false;
+      }
+    }
+    if (incomingClusterID != this.currentClusterID) {
+      // ignore inferior cluster payloads
+      return;
+    }
+    
+    // tie breaking
+    if (this.isLeader) {
+      // print("breaking tie")
+      this.currentClusterID += int(random(20));
     }
 
     this.timeSinceLastPayload = 0;
     this.network.createBroadcast(this.position, this.range, payload);
+  }
+
+  hasEnteredSuperiorCluster(incomingClusterLifetime, incomingClusterID) {
+    return incomingClusterID > this.currentClusterID;
   }
 
   addToRecentPayloads(payload) {
@@ -63,6 +97,20 @@ class Node {
     if (this.recentPayloads.length > this.maxPayloadMemory) {
       this.recentPayloads.shift(); // Remove the oldest payload
     }
+  }
+
+  display() {
+    strokeWeight(1);
+
+    stroke(0);
+    if (this.isLeader) {
+      strokeWeight(3);
+    }
+
+    // Color based on groupID for hue, with full saturation and brightness
+    fill((this.currentClusterID * 21) % 255, 100, 100);
+
+    ellipse(this.position.x, this.position.y, this.size);
   }
 
   // Incorporate Boids movement
@@ -80,38 +128,6 @@ class Node {
     // this.position.y = constrain(this.position.y, 0, height);
   }
 
-  timestep(nodes) {
-    this.move(nodes);
-    this.timeSinceLastPayload++;
-
-    if (this.leader) {
-      if (this.timeSinceLastPayload > this.maxWaitSendTime) {
-        this.send([frameCount, this.groupID]);
-        this.timeSinceLastPayload = 0;
-      }
-    } else { // is follower
-      if (this.timeSinceLastPayload > this.maxWaitRecieveTime) {
-        this.leader = true;
-        this.groupID = int(random(MAX_ID));
-        this.timeSinceLastPayload = 0;
-      }
-    }
-  }
-
-  display() {
-    strokeWeight(1);
-
-    stroke(0);
-    if (this.leader) {
-      strokeWeight(3);
-    }
-
-    // Color based on groupID for hue, with full saturation and brightness
-    fill((this.groupID * 21) % 255, 100, 100);
-
-    ellipse(this.position.x, this.position.y, this.size);
-  }
-
   // Boids
   boids(nodes) {
     let force = createVector();
@@ -120,7 +136,7 @@ class Node {
     let alignForce = this.align(nodes).mult(0.5);
     let cohesionForce = this.cohesion(nodes).mult(0.6);
 
-    let centerForce = this.position.copy().div(-width * 8);
+    let centerForce = this.position.copy().div(-3200);
     force.add(centerForce);
 
     force.add(separateForce);
