@@ -8,6 +8,8 @@ class Node {
     this.velocity = p5.Vector.random2D();
     this.range = 60;
 
+    // TODO: Add object/map of clusters_seen_count and nodes_seen_count
+    // TODO: Figure out how to work that into cluster age / priority
     this.network = network;
     this.recentPayloads = [];
     this.maxPayloadMemory = 100; // max number of recent payloads to remember
